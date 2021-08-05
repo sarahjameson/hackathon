@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script src="https://kaboomjs.com/lib/0.6.0/kaboom.js"></script>
+  <script type="module">
+
+    // init context
+    const k = kaboom({
+      global: true, // import all kaboom functions to global namespace
+      scale: 2, // pixel size (for pixelated games you might want smaller size with scale)
+      clearColor: [0, 0, 0], // background color (default is a checker board background)
+      fullscreen: true, // if fullscreen
+      crisp: true, // if pixel crisp (for sharp pixelated games)
+      debug: true, // debug mode
+    });
+
+    // define 'lionel' sprite
+    loadSprite("lionel", "assets/sprites/lionel.png");
+
+    // define map sprites (Mario)
+    loadSprite("block", "assets/sprites/block.png")
+    loadSprite("brick", "assets/sprites/brick.png")
+    loadSprite("coin", "assets/sprites/coin.png")
+    loadSprite("question", "assets/sprites/question.png")
+    loadSprite("unboxed", "assets/sprites/unboxed.png")
+    loadSprite("pipe-left", "assets/sprites/pipe-left.png")
+    loadSprite("pipe-right", "assets/sprites/pipe-right.png")
+    loadSprite("pipe-top-left-side", "assets/sprites/pipe-top-left-side.png")
+    loadSprite("pipe-top-right-side", "assets/sprites/pipe-top-right-side.png")
+    loadSprite("evil-shroom-1", "assets/sprites/evil-shroom-1.png")
+    loadSprite("mushroom", "assets/sprites/mushroom.png")
+
+    scene("game", () => {
+
+      const MOVE_SPEED = 120
+      const JUMP_FORCE = 360
+      const BIG_JUMP_FORCE = 550
+      let CURRENT_JUMP_FORCE = JUMP_FORCE
+      const ENEMY_SPEED = 20
+      const FALL_DEATH = 600
+
+      let isJumping = true
+
+
+      layers(['obj', 'ui'], 'obj')
+
+
+      // define map
+      map = [
+        '                              ',
+        '                              ',
+        '                              ',
+        '                              ',
+        '                              ',
+        '    %   =*=%=                 ',
+        '                              ',
+        '                      -+      ',
+        '             ^   ^    ()      ',
+        'xxxxxxxxxxxxxxxxxxxxxxxx    xx',
+      ]
+
+      // define map level config
+      const levelCfg = {
+        width: 20,
+        height: 20,
+        '=': [sprite('block'), solid()],
+        'x': [sprite('brick'), solid()],
+        '$': [sprite('coin'), 'coin'],
+        '%': [sprite('question'), 'coin-surprise', solid()],
+        '*': [sprite('question'), 'mushroom-surprise', solid()],
+        '}': [sprite('unboxed'), solid()],
+        '(': [sprite('pipe-left'), scale(0.5), solid()],
+        ')': [sprite('pipe-right'), scale(0.5), solid()],
+        '-': [sprite('pipe-top-left-side'), scale(0.5), solid(), 'pipe'],
+        '+': [sprite('pipe-top-right-side'), scale(0.5), solid(), 'pipe'],
+        '^': [sprite('evil-shroom-1'), solid(), 'dangerous'],
+        '#': [sprite('mushroom'), 'mushroom', body()],
+      }
+      addLevel(map, levelCfg)
+
+      // add lionel sprite
+      const lionel = add([
+        sprite("lionel"),
+        pos(30, 0),
+        body(),
+        origin('bot')
+      ]);
+
+      lionel.action(() => {
+        camPos(lionel.pos)
+        if (lionel.pos.y >= FALL_DEATH) {
+          console.log("You Lose")
+          lionel.destroy()
+        }
+      })
+
+      keyDown('left', () => {
+        lionel.move(-120, 0)
+      })
+
+      keyDown('right', () => {
+        lionel.move(120, 0)
+      })
+
+      keyPress('up', () => {
+        if (lionel.grounded()) {
+          isJumping = true
+          lionel.jump(360)
+        }
+      })
+
+    })
+
+    go("game")
+
+  </script>
+</body>
+
+</html>
