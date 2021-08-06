@@ -50,8 +50,6 @@ loadSprite("background-green", "static/sprites/bg5d.jpg")
 
 scene("game", () => {
 
-  menu_music.stop()
-
   const MOVE_SPEED = 120
   const JUMP_FORCE = 360
   const BIG_JUMP_FORCE = 550
@@ -60,8 +58,13 @@ scene("game", () => {
   const FALL_DEATH = 600
   const layerColours = ["pink", "blue", "red", "green"]
   let colourCounter = 0;
+  let musicTune = 0;
 
   let isJumping = true
+
+  menu_music.stop()
+
+  music.detune(musicTune)
 
   layers(['bg', 'obj', 'ui'], 'obj')
 
@@ -77,16 +80,16 @@ scene("game", () => {
 
   // define map (can make a longer array of these later)
   map = [
-    '                                                       ',
-    '                                                       ',
-    '                                                       ',
-    '                                                       ',
-    '                                                       ',
-    '    %   =*=%=                               -+         ',
-    '                                            ()         ',
-    '                      -+          -+       xxx      -+ ',
-    '             ^   ^    ()          ()                () ',
-    'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  xxxxxxxx  xxxxxxxx',
+    '                                                                                                              ',
+    '                                                                                                              ',
+    '                                                                                                              ',
+    '                                                                                                              ',
+    '                                                                                                              ',
+    '    %   =*=%=                               -+             %   =*=%=                               -+         ',
+    '                                            ()                                                     ()         ',
+    '                      -+          -+       xxx      -+                       -+          -+       xxx      -+ ',
+    '             ^   ^    ()          ()                ()              ^   ^    ()          ()                () ',
+    'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  xxxxxxxx  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  xxxxxxxx  xxxxxxxx',
   ]
 
   // define map level config - can make several of these for each level design
@@ -225,7 +228,6 @@ scene("game", () => {
 
   // action when lionel jumps on pipe
   lionel.collides('pipe', (p) => {
-    console.log(angle)
     angle += 90;
     destroy(p)
     gameLevel.spawn('r', p.gridPos.sub(0, 0))
@@ -242,6 +244,14 @@ scene("game", () => {
         height: height(),
       })
     ])
+
+    if (musicTune == 400){
+      musicTune = -300
+    } else {
+      musicTune += 100
+    }
+    console.log(musicTune)
+    music.detune(musicTune)
   });
 });
 
