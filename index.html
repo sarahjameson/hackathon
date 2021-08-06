@@ -57,8 +57,8 @@
 
     // music loops
     loadSound("menu", "assets/sounds/MENU_LOOP.mp3")
-    loadSound("creepy_menu","assets/sounds/CREEPY_AMBIENT_REVERSE_LOOP.mp3")
-    loadSound("game_loop","assets/sounds/REGULAR_GAMELOOP.mp3")
+    loadSound("creepy_menu", "assets/sounds/CREEPY_AMBIENT_REVERSE_LOOP.mp3")
+    loadSound("game_loop", "assets/sounds/REGULAR_GAMELOOP.mp3")
 
     const music = play("game_loop");
     const menu_music = play("creepy_menu");
@@ -78,6 +78,10 @@
     loadSprite("pipe-top-right-side", "assets/sprites/pipe-top-right-side.png")
     loadSprite("evil-shroom-1", "assets/sprites/evil-shroom-1.png")
     loadSprite("mushroom", "assets/sprites/mushroom.png")
+    loadSprite("background-pink", "assets/bg5.png")
+    loadSprite("background-blue", "assets/bg5b.jpg")
+    loadSprite("background-red", "assets/bg5c.jpg")
+    loadSprite("background-green", "assets/bg5d.jpg")
 
     scene("game", () => {
 
@@ -89,10 +93,22 @@
       let CURRENT_JUMP_FORCE = JUMP_FORCE
       const ENEMY_SPEED = 20
       const FALL_DEATH = 600
+      const layerColours = ["pink", "blue", "red", "green"]
+      let colourCounter = 0;
 
       let isJumping = true
 
-      layers(['obj', 'ui'], 'obj')
+      layers(['bg', 'obj', 'ui'], 'obj')
+
+      camIgnore(["bg", "ui"])
+
+      add([
+        layer("bg"),
+        sprite("background-pink", {
+          width: width(),
+          height: height(),
+        })
+      ])
 
       // define map (can make a longer array of these later)
       map = [
@@ -242,14 +258,25 @@
       let angle = 0;
       document.querySelector('canvas').style.setProperty("transform", `rotate(${angle}deg)`)
 
-      // spins game screen when lionel hits a pipe
+      // action when lionel jumps on pipe
       lionel.collides('pipe', (p) => {
         console.log(angle)
         angle += 90;
         destroy(p)
         gameLevel.spawn('r', p.gridPos.sub(0, 0))
         play("comedy_jump")
+        // spins canvas
         document.querySelector('canvas').style.setProperty("transform", `rotate(${angle}deg)`)
+
+        // updates background colour
+        colourCounter = (colourCounter + 1) % layerColours.length;
+        add([
+          layer("bg"),
+          sprite(`background-${layerColours[colourCounter]}`, {
+            width: width(),
+            height: height(),
+          })
+        ])
       });
 
     });
@@ -259,6 +286,8 @@
 
       music.stop()
       play("gameover_sound")
+
+
 
       // gameover screen text
       add([
