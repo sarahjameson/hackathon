@@ -55,6 +55,14 @@
     loadSound("negative_hit1", "assets/sounds/negative_hit_bip_1loop.wav")
     loadSound("negative_hit2", "assets/sounds/negative_hit_biploop.wav")
 
+    // music loops
+    loadSound("menu", "assets/sounds/MENU_LOOP.mp3")
+    loadSound("creepy_menu","assets/sounds/CREEPY_AMBIENT_REVERSE_LOOP.mp3")
+    loadSound("game_loop","assets/sounds/REGULAR_GAMELOOP.mp3")
+
+    const music = play("game_loop");
+    const menu_music = play("creepy_menu");
+
     // define 'lionel' sprite
     loadSprite("lionel", "assets/sprites/lionel.png");
 
@@ -72,6 +80,8 @@
     loadSprite("mushroom", "assets/sprites/mushroom.png")
 
     scene("game", () => {
+
+      menu_music.stop()
 
       const MOVE_SPEED = 120
       const JUMP_FORCE = 360
@@ -236,7 +246,6 @@
       lionel.collides('pipe', (p) => {
         console.log(angle)
         angle += 90;
-        console.log(angle)
         destroy(p)
         gameLevel.spawn('r', p.gridPos.sub(0, 0))
         play("comedy_jump")
@@ -248,24 +257,40 @@
     // defines gameover screen
     scene("gameover", () => {
 
+      music.stop()
       play("gameover_sound")
 
       // gameover screen text
       add([
         text("Game Over", 16),
-        pos(width() / 2, height() / 2),
+        pos(width() / 2, 120),
+        origin("center"),
+      ]);
+
+      add([
+        text("You are an idiot", 32),
+        pos(width() / 2, 220),
+        origin("center"),
+      ]);
+
+      add([
+        text("Press space to go again", 16),
+        pos(width() / 2, 320),
         origin("center"),
       ]);
 
       // press space to restart game
       keyPress("space", () => {
-        go("start");
+        go("game");
+        music.play()
       });
 
     });
 
     // defines starting screen
     scene("start", () => {
+
+      music.stop()
 
       // starting screen text
       add([
@@ -284,6 +309,7 @@
       // press space to start
       keyPress("space", () => {
         go("game");
+        music.play()
       });
 
     })
