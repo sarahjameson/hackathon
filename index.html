@@ -244,6 +244,7 @@
 
       // spins game screen when lionel hits a pipe
       lionel.collides('pipe', (p) => {
+        console.log(angle)
         angle += 90;
         destroy(p)
         gameLevel.spawn('r', p.gridPos.sub(0, 0))
