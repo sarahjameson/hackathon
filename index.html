@@ -45,6 +45,16 @@
 
     const gameCanvas = document.getElementsByTagName('canvas')[0]
 
+    // define SFX
+    loadSound("gameover_sound", "assets/sounds/annoying_game_over_biploop.wav")
+    loadSound("comedy_jump", "assets/sounds/comedy_jump_bip_2loop.wav")
+    loadSound("counting", "assets/sounds/counting_bliploop.wav")
+    loadSound("death_scream", "assets/sounds/death_scream_biploop.wav")
+    loadSound("jump", "assets/sounds/jump_biploop.wav")
+    loadSound("jumpy", "assets/sounds/jumpy_biploop.wav")
+    loadSound("negative_hit1", "assets/sounds/negative_hit_bip_1loop.wav")
+    loadSound("negative_hit2", "assets/sounds/negative_hit_biploop.wav")
+
     // define 'lionel' sprite
     loadSprite("lionel", "assets/sprites/lionel.png");
 
@@ -70,20 +80,22 @@
       const ENEMY_SPEED = 20
       const FALL_DEATH = 600
 
+      let isJumping = true
+
       layers(['obj', 'ui'], 'obj')
 
       // define map (can make a longer array of these later)
       map = [
-        '                              ',
-        '                              ',
-        '                              ',
-        '                              ',
-        '                              ',
-        '    %   =*=%=                 ',
-        '                              ',
-        '                      -+      ',
-        '             ^   ^    ()      ',
-        'xxxxxxxxxxxxxxxxxxxxxxxx    xx',
+        '                                                       ',
+        '                                                       ',
+        '                                                       ',
+        '                                                       ',
+        '                                                       ',
+        '    %   =*=%=                               -+         ',
+        '                                            ()         ',
+        '                      -+          -+       xxx      -+ ',
+        '             ^   ^    ()          ()                () ',
+        'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  xxxxxxxx  xxxxxxxx',
       ]
 
       // define map level config - can make several of these for each level design
@@ -108,11 +120,48 @@
       // creates game level
       const gameLevel = addLevel(map, levelCfg)
 
+      // function that checks if a player is 'big' or not
+      function big() {
+        // default timer and big status
+        let timer = 0
+        let isBig = false
+        return {
+          update() {
+            if (isBig) {
+              timer -= dt()
+              if (timer <= 0) {
+                this.smallify()
+              }
+            }
+          },
+          isBig() {
+            return isBig
+          },
+          // makes lionel small once the timer has elapsed
+          smallify() {
+            play("jump")
+            this.scale = vec2(1)
+            timer = 0
+            isBig = false
+            CURRENT_JUMP_FORCE = JUMP_FORCE
+          },
+          // makes lionel big when eating 'mushroom'
+          biggify(time) {
+            play("comedy_jump")
+            this.scale = vec2(2)
+            timer = time
+            isBig = true
+            CURRENT_JUMP_FORCE = BIG_JUMP_FORCE
+          }
+        }
+      }
+
       // add lionel sprite
       const lionel = add([
         sprite("lionel"),
         pos(30, 0),
         body(),
+        big(),
         origin('bot'),
       ]);
 
@@ -122,6 +171,7 @@
         if (lionel.pos.y >= FALL_DEATH) {
           console.log("You Lose")
           lionel.destroy()
+          play("death_scream")
           go("gameover")
         }
       });
@@ -140,19 +190,56 @@
       keyPress('up', () => {
         if (lionel.grounded()) {
           isJumping = true
-          lionel.jump(360)
+          lionel.jump(CURRENT_JUMP_FORCE)
+          play("jumpy")
         }
+      });
+
+      // action when lionel collides with 'coin-surprise' sprite
+      lionel.collides('coin-surprise', (obj) => {
+        play("negative_hit1")
+        gameLevel.spawn('$', obj.gridPos.sub(0, 1))
+        destroy(obj)
+        gameLevel.spawn('}', obj.gridPos.sub(0, 0))
+      });
+
+      // action when lionel collides with 'mushroom-surprise' sprite
+      lionel.collides('mushroom-surprise', (obj) => {
+        play("negative_hit2")
+        gameLevel.spawn('#', obj.gridPos.sub(0, 1))
+        destroy(obj)
+        gameLevel.spawn('}', obj.gridPos.sub(0, 0))
+      });
+
+      // action when mushroom is activated
+      action('mushroom', (m) => {
+        m.move(20, 0)
+      });
+
+      // action when lionel collides with mushroom sprite
+      lionel.collides('mushroom', (m) => {
+        lionel.biggify(6)
+        destroy(m)
+      });
+
+      // action when lionel collides with coin sprite
+      lionel.collides('coin', (c) => {
+        play("death_scream")
+        destroy(c)
       });
 
       // sets basic viewing angle
       let angle = 0;
+      document.querySelector('canvas').style.setProperty("transform", `rotate(${angle}deg)`)
 
       // spins game screen when lionel hits a pipe
       lionel.collides('pipe', (p) => {
+        console.log(angle)
         angle += 90;
         console.log(angle)
         destroy(p)
-        gameLevel.spawn('r', p.gridPos.sub(0,0))
+        gameLevel.spawn('r', p.gridPos.sub(0, 0))
+        play("comedy_jump")
         document.querySelector('canvas').style.setProperty("transform", `rotate(${angle}deg)`)
       });
 
@@ -160,6 +247,8 @@
 
     // defines gameover screen
     scene("gameover", () => {
+
+      play("gameover_sound")
 
       // gameover screen text
       add([
