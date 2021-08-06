@@ -1,0 +1,66 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+h2, p {
+  padding: 10px;
+}
+
+section {
+  background-image: url("/static/images/retro-cloud.gif");
+  background-size: cover;
+  height: 100vh;
+}
+
+.wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card-container {
+  background-color: transparent;
+  width: 260px;
+  height: 350px;
+  perspective: 1000px;
+  margin: 12px;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+
+.card-container:hover .card {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border: black 3px solid;
+  border-radius: 10px;
+}
+
+.card-front {
+  background-color: turquoise;
+  background-image: url("/assets/sprites/evil-shroom-1.png");
+}
+
+.card-back {
+  background-color: brown;
+  color: azure;
+  transform: rotateY(180deg);
+}
+
+.bad-guy {
+  background-image: url("/assets/sprites/evil-shroom-1.png");
+  background-size: cover;
+}
