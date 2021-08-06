@@ -6,6 +6,27 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+    }
+
+    canvas {
+      display: block;
+      margin-top: 10vh;
+      height: 80vh;
+      transition: 2s;
+    }
+  </style>
 </head>
 
 <body>
@@ -16,11 +37,13 @@
     const k = kaboom({
       global: true, // import all kaboom functions to global namespace
       scale: 2, // pixel size (for pixelated games you might want smaller size with scale)
-      clearColor: [0, 0, 0], // background color (default is a checker board background)
-      fullscreen: true, // if fullscreen
+      clearColor: [1, 0, 1, 1], // background color (default is a checker board background)
+      fullscreen: false, // if fullscreen
       crisp: true, // if pixel crisp (for sharp pixelated games)
       debug: true, // debug mode
     });
+
+    const gameCanvas = document.getElementsByTagName('canvas')[0]
 
     // define 'lionel' sprite
     loadSprite("lionel", "assets/sprites/lionel.png");
@@ -47,13 +70,9 @@
       const ENEMY_SPEED = 20
       const FALL_DEATH = 600
 
-      let isJumping = true
-
-
       layers(['obj', 'ui'], 'obj')
 
-
-      // define map
+      // define map (can make a longer array of these later)
       map = [
         '                              ',
         '                              ',
@@ -67,7 +86,7 @@
         'xxxxxxxxxxxxxxxxxxxxxxxx    xx',
       ]
 
-      // define map level config
+      // define map level config - can make several of these for each level design
       const levelCfg = {
         width: 20,
         height: 20,
@@ -79,47 +98,109 @@
         '}': [sprite('unboxed'), solid()],
         '(': [sprite('pipe-left'), scale(0.5), solid()],
         ')': [sprite('pipe-right'), scale(0.5), solid()],
-        '-': [sprite('pipe-top-left-side'), scale(0.5), solid(), 'pipe'],
+        '-': [sprite('pipe-top-left-side'), scale(0.5), solid()],
         '+': [sprite('pipe-top-right-side'), scale(0.5), solid(), 'pipe'],
+        'r': [sprite('pipe-top-right-side'), scale(0.5), solid()],
         '^': [sprite('evil-shroom-1'), solid(), 'dangerous'],
         '#': [sprite('mushroom'), 'mushroom', body()],
       }
-      addLevel(map, levelCfg)
+
+      // creates game level
+      const gameLevel = addLevel(map, levelCfg)
 
       // add lionel sprite
       const lionel = add([
         sprite("lionel"),
         pos(30, 0),
         body(),
-        origin('bot')
+        origin('bot'),
       ]);
 
+      // defines lionel sprites behaviour - is tracked by camera and falldeath action
       lionel.action(() => {
         camPos(lionel.pos)
         if (lionel.pos.y >= FALL_DEATH) {
           console.log("You Lose")
           lionel.destroy()
+          go("gameover")
         }
-      })
+      });
 
+      // lionel left movement
       keyDown('left', () => {
         lionel.move(-120, 0)
-      })
+      });
 
+      // lionel right movement
       keyDown('right', () => {
         lionel.move(120, 0)
-      })
+      });
 
+      // lionel jump (could use spacebar as well maybe?)
       keyPress('up', () => {
         if (lionel.grounded()) {
           isJumping = true
           lionel.jump(360)
         }
-      })
+      });
+
+      // sets basic viewing angle
+      let angle = 0;
+
+      // spins game screen when lionel hits a pipe
+      lionel.collides('pipe', (p) => {
+        angle += 90;
+        console.log(angle)
+        destroy(p)
+        gameLevel.spawn('r', p.gridPos.sub(0,0))
+        document.querySelector('canvas').style.setProperty("transform", `rotate(${angle}deg)`)
+      });
+
+    });
+
+    // defines gameover screen
+    scene("gameover", () => {
+
+      // gameover screen text
+      add([
+        text("Game Over", 16),
+        pos(width() / 2, height() / 2),
+        origin("center"),
+      ]);
+
+      // press space to restart game
+      keyPress("space", () => {
+        go("start");
+      });
+
+    });
+
+    // defines starting screen
+    scene("start", () => {
+
+      // starting screen text
+      add([
+        text("Welcome to Lionoil", 20),
+        pos(width() / 2, 120),
+        origin("center"),
+      ]);
+
+      // starting screen text 2
+      add([
+        text("Press the space key to begin", 16),
+        pos(width() / 2, 180),
+        origin("center"),
+      ]);
+
+      // press space to start
+      keyPress("space", () => {
+        go("game");
+      });
 
     })
 
-    go("game")
+    // default action on page load - start screen
+    go("start")
 
   </script>
 </body>
